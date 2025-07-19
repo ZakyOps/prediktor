@@ -1,13 +1,22 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import Dashboard from "./Dashboard";
 import DataForm from "./DataForm";
 import BusinessPlan from "./BusinessPlan";
 import Settings from "./Settings";
 import Navigation from "./Navigation";
 import Insights from "./Insights";
+import { logout } from "@/services/auth";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
-const AppLayout = () => {
+const AppLayout = ({ children }: { children?: ReactNode }) => {
   const [currentModule, setCurrentModule] = useState("dashboard");
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   const renderModule = () => {
     switch (currentModule) {
@@ -28,6 +37,12 @@ const AppLayout = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <header className="flex justify-between items-center p-4 border-b border-border bg-card">
+        <h1 className="text-xl font-bold">Prediktor</h1>
+        <Button variant="outline" onClick={handleLogout}>
+          Déconnexion
+        </Button>
+      </header>
       <div className="flex">
         <Navigation 
           currentModule={currentModule}
