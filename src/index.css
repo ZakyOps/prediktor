@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SME Growth Predictor Design System
+All colors MUST be HSL for consistency.
+Professional business intelligence inspired theme.
+*/
+
+@layer base {
+  :root {
+    /* Core Business Colors */
+    --primary: 217 91% 60%;           /* #2563eb - Professional Blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 217 91% 70%;     /* Lighter blue for gradients */
+    
+    --secondary: 158 64% 52%;         /* #059669 - Growth Green */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 158 64% 62%;   /* Lighter green */
+    
+    --accent: 0 74% 50%;              /* #dc2626 - Alert Red */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Background System */
+    --background: 210 40% 98%;        /* #f8fafc - Clean slate */
+    --foreground: 215 25% 27%;        /* #1e293b - Professional text */
+    
+    --card: 0 0% 100%;                /* Pure white cards */
+    --card-foreground: 215 25% 27%;
+    --card-border: 214 32% 91%;       /* #e2e8f0 - Subtle borders */
+    
+    --muted: 210 40% 94%;             /* Muted backgrounds */
+    --muted-foreground: 215 16% 47%;  /* #64748b - Secondary text */
+    
+    /* Interactive Elements */
+    --border: 214 32% 91%;            /* #e2e8f0 */
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;              /* Focus ring matches primary */
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 27%;
+    
+    /* Status Colors */
+    --success: 158 64% 52%;           /* Growth green */
+    --success-foreground: 0 0% 100%;
+    --warning: 43 96% 56%;            /* Alert yellow */
+    --warning-foreground: 0 0% 0%;
+    --destructive: 0 74% 50%;         /* Error red */
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Business Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-success: linear-gradient(135deg, hsl(158 64% 52%), hsl(158 64% 62%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    
+    /* Professional Shadows */
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-elevated: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-focus: 0 0 0 3px hsl(217 91% 60% / 0.3);
+    
+    /* Animation Timing */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease-in-out;
+    
+    --radius: 0.75rem;
+
+    /* Sidebar Support */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode colors for business app */
+    --background: 215 28% 17%;           /* #1e293b - Dark professional */
+    --foreground: 210 40% 98%;           /* Light text */
+    
+    --card: 215 28% 17%;
+    --card-foreground: 210 40% 98%;
+    --card-border: 215 25% 27%;
+    
+    --primary: 217 91% 70%;              /* Lighter blue for dark mode */
+    --primary-foreground: 0 0% 0%;
+    --primary-light: 217 91% 80%;
+    
+    --secondary: 158 64% 62%;            /* Lighter green */
+    --secondary-foreground: 0 0% 0%;
+    --secondary-light: 158 64% 72%;
+    
+    --accent: 0 74% 60%;                 /* Lighter red */
+    --accent-foreground: 0 0% 100%;
+    
+    --muted: 215 25% 27%;                /* Dark muted */
+    --muted-foreground: 215 20% 65%;     /* Light muted text */
+    
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 217 91% 70%;
+    
+    --popover: 215 28% 17%;
+    --popover-foreground: 210 40% 98%;
+    
+    --success: 158 64% 62%;
+    --success-foreground: 0 0% 0%;
+    --warning: 43 96% 66%;
+    --warning-foreground: 0 0% 0%;
+    --destructive: 0 74% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 70%), hsl(217 91% 80%));
+    --gradient-success: linear-gradient(135deg, hsl(158 64% 62%), hsl(158 64% 72%));
+    --gradient-card: linear-gradient(145deg, hsl(215 28% 17%), hsl(215 25% 20%));
+
+    /* Dark Sidebar */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Business app specific styles */
+  .metric-card {
+    @apply bg-gradient-to-r from-card to-card/95 border border-card-border rounded-lg;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .metric-card:hover {
+    box-shadow: var(--shadow-elevated);
+  }
+  
+  .business-gradient {
+    background: var(--gradient-primary);
+  }
+  
+  .success-gradient {
+    background: var(--gradient-success);
+  }
+}
