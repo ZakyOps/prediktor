@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info, Copy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
@@ -14,6 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showTestInfo, setShowTestInfo] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -41,57 +42,121 @@ const Login = () => {
     }
   };
 
+  const handleTestLogin = () => {
+    setEmail("test1@gmail.com");
+    setPassword("123456");
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isRegister ? "Créer un compte" : "Connexion"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                autoFocus
-              />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-4">
+        {/* Section d'informations de test */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-blue-900 text-lg">Compte de test</CardTitle>
             </div>
-            <div>
-              <Input
-                type="password"
-                placeholder="Mot de passe"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-blue-800 text-sm mb-3">
+              Utilisez ces identifiants pour tester notre solution :
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-white rounded p-2">
+                <span className="text-sm font-medium text-blue-900">Email:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-blue-700">test1@gmail.com</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard("test1@gmail.com")}
+                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-white rounded p-2">
+                <span className="text-sm font-medium text-blue-900">Mot de passe:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-blue-700">123456</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard("123456")}
+                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Chargement..." : isRegister ? "Créer un compte" : "Se connecter"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
             <Button
-              variant="link"
-              type="button"
-              onClick={() => setIsRegister(r => !r)}
-              className="text-primary"
+              onClick={handleTestLogin}
+              variant="outline"
+              className="w-full mt-3 border-blue-300 text-blue-700 hover:bg-blue-100"
             >
-              {isRegister
-                ? "Déjà un compte ? Se connecter"
-                : "Pas encore de compte ? S'inscrire"}
+              Remplir automatiquement
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Formulaire de connexion */}
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>{isRegister ? "Créer un compte" : "Connexion"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Mot de passe"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Chargement..." : isRegister ? "Créer un compte" : "Se connecter"}
+              </Button>
+            </form>
+            <div className="mt-4 text-center">
+              <Button
+                variant="link"
+                type="button"
+                onClick={() => setIsRegister(r => !r)}
+                className="text-primary"
+              >
+                {isRegister
+                  ? "Déjà un compte ? Se connecter"
+                  : "Pas encore de compte ? S'inscrire"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
