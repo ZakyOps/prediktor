@@ -8,6 +8,7 @@ import Login from "@/pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import GeminiTest from "./components/GeminiTest";
+import PrivateRoute from "@/components/PrivateRoute";
 
 const queryClient = new QueryClient();
 
@@ -18,14 +19,22 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/test-gemini" element={<GeminiTest />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+  <Routes>
+    <Route path="/login" element={<Login />} />
+    {/* Route protégée */}
+    <Route
+      path="/"
+      element={
+        <PrivateRoute>
+          <Index />
+        </PrivateRoute>
+      }
+    />
+    <Route path="/test-gemini" element={<GeminiTest />} />
+    {/* Autres routes */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+</BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   </AuthProvider>

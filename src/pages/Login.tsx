@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login, register } from "@/services/auth";
+import { login } from "@/services/auth";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,10 @@ import { AlertCircle, Info, Copy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
-  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showTestInfo, setShowTestInfo] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -29,11 +27,7 @@ const Login = () => {
     setError(null);
     setLoading(true);
     try {
-      if (isRegister) {
-        await register(email, password);
-      } else {
-        await login(email, password);
-      }
+      await login(email, password);
       navigate("/");
     } catch (err: any) {
       setError(err.message);
@@ -54,7 +48,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
-        {/* Section d'informations de test */}
+        {/* Section d'informations de test (conservée) */}
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -106,10 +100,10 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Formulaire de connexion */}
+        {/* Formulaire de connexion simplifié */}
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>{isRegister ? "Créer un compte" : "Connexion"}</CardTitle>
+            <CardTitle>Connexion à la plateforme</CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -139,21 +133,10 @@ const Login = () => {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Chargement..." : isRegister ? "Créer un compte" : "Se connecter"}
+                {loading ? "Chargement..." : "Se connecter"}
               </Button>
             </form>
-            <div className="mt-4 text-center">
-              <Button
-                variant="link"
-                type="button"
-                onClick={() => setIsRegister(r => !r)}
-                className="text-primary"
-              >
-                {isRegister
-                  ? "Déjà un compte ? Se connecter"
-                  : "Pas encore de compte ? S'inscrire"}
-              </Button>
-            </div>
+            {/* Pas de lien vers l'inscription */}
           </CardContent>
         </Card>
       </div>
@@ -161,4 +144,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
