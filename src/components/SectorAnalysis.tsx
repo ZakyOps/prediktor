@@ -42,6 +42,7 @@ import DemoDataIndicator from "./DemoDataIndicator";
 import DebugData from "./DebugData";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveAnalysisToFirestore } from "@/services/analysis-storage";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 interface SectorAnalysisProps {
   companyData: CompanyData;
@@ -53,6 +54,7 @@ const COLORS = ['#2563eb', '#059669', '#dc2626', '#ea580c', '#7c3aed'];
 const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { profile: userProfile } = useUserProfile();
   const [analysis, setAnalysis] = useState<ComparativeAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -70,7 +72,7 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
       setError(null);
       
       const geminiService = new GeminiService();
-      const result = await geminiService.generateComparativeAnalysis(companyData);
+      const result = await geminiService.generateComparativeAnalysis(companyData, userProfile);
       setAnalysis(result.analysis);
       setIsDemoData(result.isDemoData);
       
@@ -86,7 +88,9 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
       
       toast({
         title: "Analyse générée",
-        description: "L'analyse sectorielle a été générée avec succès.",
+        description: userProfile?.isProfileComplete 
+          ? "L'analyse sectorielle a été générée avec succès en tenant compte de vos informations d'entreprise."
+          : "L'analyse sectorielle a été générée. Complétez votre profil pour des analyses plus précises.",
         duration: 3000,
       });
     } catch (err) {

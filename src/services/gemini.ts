@@ -1,3 +1,5 @@
+import { UserProfile } from "@/services/user-profile";
+
 interface SectorData {
   sector: string;
   averageRevenue: number;
@@ -133,7 +135,10 @@ class GeminiService {
     return cleaned.trim();
   }
 
-  async analyzeSectorData(sector: string, country: string = 'Côte d\'Ivoire'): Promise<SectorData> {
+  async analyzeSectorData(sector: string, userProfile?: UserProfile): Promise<SectorData> {
+    const country = userProfile?.country || 'Côte d\'Ivoire';
+    const currency = userProfile?.currency || 'FCFA';
+    
     const prompt = `
     Tu es un expert en analyse sectorielle. Analyse le secteur "${sector}" en ${country}.
 
@@ -143,8 +148,15 @@ class GeminiService {
     - PAS de markdown, backticks, ou code blocks
     - PAS d'explications ou de commentaires
     - Commence directement par { et termine par }
+    - IMPORTANT: Adapte les données au contexte économique de ${country} et utilise ${currency} comme devise
 
-    Exemple de réponse attendue (remplace les valeurs par des données réalistes pour "${sector}"):
+    CONTEXTE GÉOGRAPHIQUE ET ÉCONOMIQUE:
+    - Pays: ${country}
+    - Devise: ${currency}
+    - Secteur: ${sector}
+    - Contexte: Marché africain avec spécificités locales
+
+    Exemple de réponse attendue (remplace les valeurs par des données réalistes pour "${sector}" en ${country}):
     {
       "sector": "${sector}",
       "averageRevenue": 50000000,
@@ -162,7 +174,7 @@ class GeminiService {
       "opportunities": ["Marché en croissance", "Développement digital", "Partenariats locaux"]
     }
 
-    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire.
+    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire. Adapte les données au contexte de ${country}.
     `;
 
     const response = await this.callGeminiAPI(prompt);
@@ -177,7 +189,11 @@ class GeminiService {
     }
   }
 
-  async calculateHealthScore(companyData: CompanyData, sectorData: SectorData): Promise<HealthScore> {
+  async calculateHealthScore(companyData: CompanyData, sectorData: SectorData, userProfile?: UserProfile): Promise<HealthScore> {
+    const country = userProfile?.country || 'Côte d\'Ivoire';
+    const currency = userProfile?.currency || 'FCFA';
+    const companyName = userProfile?.companyName || 'Votre entreprise';
+    
     const prompt = `
     Tu es un expert en analyse financière. Calcule un score de santé pour une entreprise.
 
@@ -187,20 +203,25 @@ class GeminiService {
     - PAS de markdown, backticks, ou code blocks
     - PAS d'explications ou de commentaires
     - Commence directement par { et termine par }
+    - IMPORTANT: Adapte l'analyse au contexte de ${country} et utilise ${currency}
 
-    Données entreprise:
-    - Revenus: ${companyData.revenue} FCFA
-    - Charges: ${companyData.expenses} FCFA
+    CONTEXTE DE L'ENTREPRISE:
+    - Nom: ${companyName}
+    - Pays: ${country}
+    - Devise: ${currency}
+    - Revenus: ${companyData.revenue} ${currency}
+    - Charges: ${companyData.expenses} ${currency}
     - Employés: ${companyData.employees}
     - Secteur: ${companyData.sector}
     
-    Données secteur:
-    - Revenus moyens: ${sectorData.averageRevenue} FCFA
-    - Charges moyennes: ${sectorData.averageExpenses} FCFA
+    DONNÉES SECTORIELLES (${country}):
+    - Revenus moyens: ${sectorData.averageRevenue} ${currency}
+    - Charges moyennes: ${sectorData.averageExpenses} ${currency}
     - Employés moyens: ${sectorData.averageEmployees}
-    - Croissance: ${sectorData.growthRate}%
+    - Croissance du secteur: ${sectorData.growthRate}%
+    - Taille du marché: ${sectorData.marketSize} ${currency}
 
-    Exemple de réponse attendue (calcule des scores réalistes):
+    Exemple de réponse attendue (adapte au contexte de ${country}):
     {
       "overall": 75,
       "profitability": 80,
@@ -208,13 +229,13 @@ class GeminiService {
       "growth": 65,
       "marketPosition": 75,
       "details": {
-        "strengths": ["Rentabilité supérieure à la moyenne", "Efficacité opérationnelle"],
+        "strengths": ["Rentabilité supérieure à la moyenne du secteur en ${country}", "Efficacité opérationnelle"],
         "weaknesses": ["Taille d'équipe limitée", "Potentiel de croissance"],
         "recommendations": ["Investir dans la croissance", "Optimiser les processus"]
       }
     }
 
-    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire.
+    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire. Adapte l'analyse au contexte de ${country}.
     `;
 
     const response = await this.callGeminiAPI(prompt);
@@ -229,15 +250,21 @@ class GeminiService {
     }
   }
 
-  async generateComparativeAnalysis(companyData: CompanyData): Promise<{ analysis: ComparativeAnalysis; isDemoData: boolean }> {
+  async generateComparativeAnalysis(companyData: CompanyData, userProfile?: UserProfile): Promise<{ analysis: ComparativeAnalysis; isDemoData: boolean }> {
     try {
-      // Récupérer les données sectorielles
-      const sectorData = await this.analyzeSectorData(companyData.sector);
+      // Récupérer les données sectorielles avec le profil utilisateur
+      const sectorData = await this.analyzeSectorData(companyData.sector, userProfile);
       
-      // Calculer le score de santé
-      const healthScore = await this.calculateHealthScore(companyData, sectorData);
+      // Calculer le score de santé avec le profil utilisateur
+      const healthScore = await this.calculateHealthScore(companyData, sectorData, userProfile);
       
       // Générer l'analyse comparative complète
+      const country = userProfile?.country || 'Côte d\'Ivoire';
+      const currency = userProfile?.currency || 'FCFA';
+      const companyName = userProfile?.companyName || 'Votre entreprise';
+      const website = userProfile?.website || '';
+      const companySize = userProfile?.companySize || '';
+      
       const prompt = `
       Tu es un expert en stratégie d'entreprise. Génère une analyse comparative complète.
 
@@ -248,16 +275,22 @@ class GeminiService {
       - PAS d'explications ou de commentaires
       - Commence directement par { et termine par }
       - IMPORTANT: Génère TOUJOURS des données complètes pour les graphiques
+      - IMPORTANT: Adapte l'analyse au contexte de ${country} et utilise ${currency}
 
-      Données entreprise:
-      - Revenus: ${companyData.revenue} FCFA
-      - Charges: ${companyData.expenses} FCFA
+      CONTEXTE DE L'ENTREPRISE:
+      - Nom: ${companyName}
+      - Pays: ${country}
+      - Devise: ${currency}
+      - Site web: ${website || 'Non renseigné'}
+      - Taille: ${companySize || 'Non renseignée'}
+      - Revenus: ${companyData.revenue} ${currency}
+      - Charges: ${companyData.expenses} ${currency}
       - Employés: ${companyData.employees}
       - Secteur: ${companyData.sector}
       
       Score de santé: ${healthScore.overall}/100
 
-      Exemple de réponse attendue (adapte au contexte africain):
+      Exemple de réponse attendue (actions CONCRÈTES pour le secteur ${companyData.sector} en ${country}):
       {
         "competitivePosition": {
           "score": 75,
@@ -291,7 +324,7 @@ class GeminiService {
         }
       }
 
-      RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire.
+      RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire. Génère des actions CONCRÈTES et SPÉCIFIQUES au secteur ${companyData.sector} en ${country}.
       `;
 
       const response = await this.callGeminiAPI(prompt);
@@ -334,13 +367,19 @@ class GeminiService {
     }
   }
 
-  async generateActionPlan(analysis: ComparativeAnalysis): Promise<{
+  async generateActionPlan(analysis: ComparativeAnalysis, userProfile?: UserProfile): Promise<{
     objectives: string[];
     actions: { category: string; actions: string[] }[];
     timeline: { phase: string; duration: string; actions: string[] }[];
   }> {
+    const country = userProfile?.country || 'Côte d\'Ivoire';
+    const currency = userProfile?.currency || 'FCFA';
+    const companyName = userProfile?.companyName || 'Votre entreprise';
+    const website = userProfile?.website || '';
+    const companySize = userProfile?.companySize || '';
+    
     const prompt = `
-    Tu es un expert en stratégie d'entreprise spécialisé dans le marché africain. Génère un plan d'action détaillé et personnalisé.
+    Tu es un expert en stratégie d'entreprise spécialisé dans le marché africain. Génère un plan d'action détaillé et personnalisé avec des actions CONCRÈTES et SPÉCIFIQUES.
 
     INSTRUCTIONS CRITIQUES:
     - Réponds UNIQUEMENT avec du JSON valide
@@ -348,20 +387,27 @@ class GeminiService {
     - PAS de markdown, backticks, ou code blocks
     - PAS d'explications ou de commentaires
     - Commence directement par { et termine par }
-    - Toutes les valeurs doivent être des chaînes de caractères simples
+    - IMPORTANT: Génère des actions CONCRÈTES et SPÉCIFIQUES, PAS d'actions génériques comme "Action prioritaire 1"
+    - Chaque action doit être détaillée et actionable
+    - Adapte les actions au score de santé, au secteur spécifique et au contexte de ${country}
 
     CONTEXTE DE L'ENTREPRISE:
+    - Nom: ${companyName}
+    - Pays: ${country}
+    - Devise: ${currency}
+    - Site web: ${website || 'Non renseigné'}
+    - Taille: ${companySize || 'Non renseignée'}
     - Secteur: ${analysis.companyData.sector}
-    - Revenus: ${analysis.companyData.revenue.toLocaleString()} FCFA
-    - Charges: ${analysis.companyData.expenses.toLocaleString()} FCFA
+    - Revenus: ${analysis.companyData.revenue.toLocaleString()} ${currency}
+    - Charges: ${analysis.companyData.expenses.toLocaleString()} ${currency}
     - Employés: ${analysis.companyData.employees}
     - Score de santé: ${analysis.healthScore.overall}/100
     - Position concurrentielle: ${analysis.competitivePosition.position}
     
-    DONNÉES SECTORIELLES:
-    - Revenus moyens du secteur: ${analysis.sectorData.averageRevenue.toLocaleString()} FCFA
+    DONNÉES SECTORIELLES (${country}):
+    - Revenus moyens du secteur: ${analysis.sectorData.averageRevenue.toLocaleString()} ${currency}
     - Croissance du secteur: ${analysis.sectorData.growthRate}%
-    - Taille du marché: ${analysis.sectorData.marketSize.toLocaleString()} FCFA
+    - Taille du marché: ${analysis.sectorData.marketSize.toLocaleString()} ${currency}
     
     FORCES ET FAIBLESSES IDENTIFIÉES:
     - Forces: ${analysis.healthScore.details.strengths.join(', ')}
@@ -372,51 +418,79 @@ class GeminiService {
     - Court terme: ${analysis.recommendations.shortTerm.join(', ')}
     - Long terme: ${analysis.recommendations.longTerm.join(', ')}
 
-    Exemple de réponse attendue (adapte au contexte africain):
+    Exemple de réponse attendue (actions CONCRÈTES pour ${companyName} en ${country}):
     {
       "objectives": [
-        "Augmenter les revenus de 25% en 12 mois en développant 3 nouveaux marchés",
-        "Réduire les coûts opérationnels de 15% en optimisant les processus",
-        "Améliorer la satisfaction client de 30% en formant l'équipe"
+        "Augmenter les revenus de 25% en 12 mois en développant 3 nouveaux marchés dans ${country}",
+        "Réduire les coûts opérationnels de 15% en optimisant la chaîne logistique",
+        "Améliorer la satisfaction client de 30% en formant l'équipe aux nouvelles technologies"
       ],
       "actions": [
         {
           "category": "Marketing",
-          "actions": ["Lancer une campagne digitale ciblée", "Participer à 5 salons professionnels", "Créer un programme de fidélisation"]
+          "actions": [
+            "Lancer une campagne Facebook Ads ciblée sur les clients potentiels de ${analysis.companyData.sector} en ${country}",
+            "Créer un site web responsive avec système de réservation en ligne",
+            "Participer au Salon International de ${analysis.companyData.sector} à ${country === 'Côte d\'Ivoire' ? 'Abidjan' : 'la capitale'}"
+          ]
         },
         {
           "category": "Opérations", 
-          "actions": ["Automatiser les processus manuels", "Négocier de nouveaux fournisseurs", "Optimiser la chaîne logistique"]
+          "actions": [
+            "Automatiser le processus de facturation avec un logiciel de gestion",
+            "Négocier des contrats avec 3 nouveaux fournisseurs locaux en ${country}",
+            "Optimiser les horaires de travail pour réduire les coûts énergétiques"
+          ]
         },
         {
           "category": "Finance",
-          "actions": ["Diversifier les sources de financement", "Mettre en place un budget prévisionnel", "Optimiser la trésorerie"]
+          "actions": [
+            "Obtenir un prêt bancaire de 50M ${currency} pour l'expansion",
+            "Mettre en place un système de suivi budgétaire mensuel",
+            "Diversifier les sources de revenus avec des services complémentaires"
+          ]
         },
         {
           "category": "Ressources Humaines",
-          "actions": ["Former l'équipe aux nouvelles technologies", "Recruter 2 experts sectoriels", "Mettre en place un système de motivation"]
+          "actions": [
+            "Former 5 employés aux techniques de vente modernes",
+            "Recruter un expert en ${analysis.companyData.sector} avec 5 ans d'expérience",
+            "Mettre en place un système de bonus basé sur les performances"
+          ]
         }
       ],
       "timeline": [
         {
           "phase": "Phase 1 - Actions Immédiates",
           "duration": "1-3 mois",
-          "actions": ["Audit des processus actuels", "Formation de l'équipe", "Lancement de la campagne digitale"]
+          "actions": [
+            "Audit complet des processus actuels et identification des goulots d'étranglement",
+            "Formation de l'équipe aux nouvelles technologies et outils digitaux",
+            "Lancement de la campagne marketing digitale avec budget de 2M ${currency}"
+          ]
         },
         {
-          "phase": "Phase 2 - Développement",
-          "duration": "3-6 mois", 
-          "actions": ["Développement des nouveaux marchés", "Optimisation des processus", "Recrutement des experts"]
+          "phase": "Phase 2 - Développement", 
+          "duration": "3-6 mois",
+          "actions": [
+            "Ouverture de 2 nouveaux points de vente dans les zones à fort potentiel de ${country}",
+            "Optimisation des processus de production pour réduire les coûts de 10%",
+            "Recrutement et formation de 3 nouveaux employés qualifiés"
+          ]
         },
         {
           "phase": "Phase 3 - Expansion",
           "duration": "6-12 mois",
-          "actions": ["Expansion géographique", "Innovation produit", "Partenariats stratégiques"]
+          "actions": [
+            "Expansion vers 2 nouvelles régions de ${country} avec partenariats locaux",
+            "Lancement de 3 nouveaux produits/services innovants",
+            "Partenariat stratégique avec une entreprise leader du secteur en ${country}"
+          ]
         }
       ]
     }
 
-    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire.
+    RÈPONSE REQUISE: JSON uniquement, sans formatage supplémentaire. Génère des actions CONCRÈTES et SPÉCIFIQUES pour ${companyName} dans le secteur ${analysis.companyData.sector} en ${country}.
     `;
 
     const response = await this.callGeminiAPI(prompt);
@@ -442,7 +516,11 @@ class GeminiService {
     // Validation des objectifs
     const objectives = Array.isArray(data.objectives) 
       ? data.objectives.map((obj: any) => typeof obj === 'string' ? obj : JSON.stringify(obj))
-      : ['Objectif 1: Améliorer la rentabilité', 'Objectif 2: Optimiser les processus', 'Objectif 3: Développer le marché'];
+      : [
+          'Augmenter les revenus de 25% en 12 mois en développant de nouveaux marchés',
+          'Réduire les coûts opérationnels de 15% en optimisant les processus',
+          'Améliorer la satisfaction client de 30% en formant l\'équipe'
+        ];
 
     // Validation des actions par catégorie
     const actions = Array.isArray(data.actions) 
@@ -453,10 +531,38 @@ class GeminiService {
             : ['Action 1', 'Action 2', 'Action 3']
         }))
       : [
-          { category: 'Marketing', actions: ['Action marketing 1', 'Action marketing 2', 'Action marketing 3'] },
-          { category: 'Opérations', actions: ['Action opérations 1', 'Action opérations 2', 'Action opérations 3'] },
-          { category: 'Finance', actions: ['Action finance 1', 'Action finance 2', 'Action finance 3'] },
-          { category: 'Ressources Humaines', actions: ['Action RH 1', 'Action RH 2', 'Action RH 3'] }
+          { 
+            category: 'Marketing', 
+            actions: [
+              'Lancer une campagne Facebook Ads ciblée sur les clients potentiels',
+              'Créer un site web responsive avec système de réservation en ligne',
+              'Participer à 3 salons professionnels dans la région'
+            ] 
+          },
+          { 
+            category: 'Opérations', 
+            actions: [
+              'Automatiser le processus de facturation avec un logiciel de gestion',
+              'Négocier des contrats avec 3 nouveaux fournisseurs locaux',
+              'Optimiser les horaires de travail pour réduire les coûts énergétiques'
+            ] 
+          },
+          { 
+            category: 'Finance', 
+            actions: [
+              'Obtenir un prêt bancaire de 50M FCFA pour l\'expansion',
+              'Mettre en place un système de suivi budgétaire mensuel',
+              'Diversifier les sources de revenus avec des services complémentaires'
+            ] 
+          },
+          { 
+            category: 'Ressources Humaines', 
+            actions: [
+              'Former 5 employés aux techniques de vente modernes',
+              'Recruter un expert sectoriel avec 5 ans d\'expérience',
+              'Mettre en place un système de bonus basé sur les performances'
+            ] 
+          }
         ];
 
     // Validation de la timeline
@@ -469,9 +575,33 @@ class GeminiService {
             : ['Action 1', 'Action 2', 'Action 3']
         }))
       : [
-          { phase: 'Phase 1 - Actions Immédiates', duration: '1-3 mois', actions: ['Action prioritaire 1', 'Action prioritaire 2', 'Action prioritaire 3'] },
-          { phase: 'Phase 2 - Développement', duration: '3-6 mois', actions: ['Action développement 1', 'Action développement 2', 'Action développement 3'] },
-          { phase: 'Phase 3 - Expansion', duration: '6-12 mois', actions: ['Action expansion 1', 'Action expansion 2', 'Action expansion 3'] }
+          { 
+            phase: 'Phase 1 - Actions Immédiates', 
+            duration: '1-3 mois', 
+            actions: [
+              'Audit complet des processus actuels et identification des goulots d\'étranglement',
+              'Formation de l\'équipe aux nouvelles technologies et outils digitaux',
+              'Lancement de la campagne marketing digitale avec budget de 2M FCFA'
+            ] 
+          },
+          { 
+            phase: 'Phase 2 - Développement', 
+            duration: '3-6 mois', 
+            actions: [
+              'Ouverture de 2 nouveaux points de vente dans les zones à fort potentiel',
+              'Optimisation des processus de production pour réduire les coûts de 10%',
+              'Recrutement et formation de 3 nouveaux employés qualifiés'
+            ] 
+          },
+          { 
+            phase: 'Phase 3 - Expansion', 
+            duration: '6-12 mois', 
+            actions: [
+              'Expansion vers 2 nouvelles régions avec partenariats locaux',
+              'Lancement de 3 nouveaux produits/services innovants',
+              'Partenariat stratégique avec une entreprise leader du secteur'
+            ] 
+          }
         ];
 
     return { objectives, actions, timeline };

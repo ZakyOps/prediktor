@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ComparativeAnalysis } from "@/services/gemini";
 import GeminiService from "@/services/gemini";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 interface ActionPlanProps {
   analysis: ComparativeAnalysis;
@@ -33,6 +34,7 @@ interface ActionPlanData {
 
 const ActionPlan = ({ analysis, onBack }: ActionPlanProps) => {
   const { toast } = useToast();
+  const { profile: userProfile } = useUserProfile();
   const [actionPlan, setActionPlan] = useState<ActionPlanData | null>(null);
   const [loading, setLoading] = useState(false);
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
@@ -42,13 +44,15 @@ const ActionPlan = ({ analysis, onBack }: ActionPlanProps) => {
       setLoading(true);
       
       const geminiService = new GeminiService();
-      const actionPlanData = await geminiService.generateActionPlan(analysis);
+      const actionPlanData = await geminiService.generateActionPlan(analysis, userProfile);
       
       setActionPlan(actionPlanData);
       
       toast({
         title: "Plan d'action généré",
-        description: "Votre plan d'action personnalisé a été créé avec succès par l'IA.",
+        description: userProfile?.isProfileComplete 
+          ? "Votre plan d'action personnalisé a été créé avec succès en tenant compte de vos informations d'entreprise."
+          : "Votre plan d'action personnalisé a été créé. Complétez votre profil pour des plans plus précis.",
         duration: 3000,
       });
     } catch (error) {
@@ -137,6 +141,35 @@ const ActionPlan = ({ analysis, onBack }: ActionPlanProps) => {
                         <span className="text-muted-foreground">Revenus :</span>
                         <span className="font-medium ml-2">{analysis.companyData.revenue.toLocaleString()} FCFA</span>
                       </div>
+                    </div>
+                    {userProfile && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <h5 className="font-semibold mb-2">Informations d'entreprise :</h5>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Entreprise :</span>
+                            <span className="font-medium ml-2">{userProfile.companyName || 'Non renseigné'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Pays :</span>
+                            <span className="font-medium ml-2">{userProfile.country || 'Non renseigné'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Taille :</span>
+                            <span className="font-medium ml-2">{userProfile.companySize || 'Non renseignée'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Devise :</span>
+                            <span className="font-medium ml-2">{userProfile.currency || 'FCFA'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground">
+                        <strong>Actions personnalisées :</strong> Le plan d'action sera généré en fonction de votre score de santé ({analysis.healthScore.overall}/100), 
+                        du secteur {analysis.companyData.sector} et de vos informations d'entreprise pour des actions concrètes et mesurables.
+                      </p>
                     </div>
                   </div>
                 </div>

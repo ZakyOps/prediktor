@@ -11,6 +11,7 @@ import { CompanyData } from "@/services/gemini";
 import { getRandomTestData } from "@/utils/test-data";
 import { useAuth } from "@/contexts/AuthContext";
 import { savePredictionToFirestore } from "@/services/prediction-storage";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 interface DataFormProps {
   onBack?: () => void;
@@ -25,6 +26,8 @@ interface ImportedData {
 
 const DataForm = ({ onBack }: DataFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { profile: userProfile } = useUserProfile();
   const [formData, setFormData] = useState({
     year: "",
     revenue: "",
@@ -38,7 +41,6 @@ const DataForm = ({ onBack }: DataFormProps) => {
   const [importedData, setImportedData] = useState<ImportedData | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const { user } = useAuth();
 
   const sectors = [
     "Agriculture", "Commerce", "Services", "Technologie", 
@@ -435,6 +437,62 @@ const DataForm = ({ onBack }: DataFormProps) => {
                   ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* User Profile Information */}
+        {userProfile && (
+          <Card className="border-card-border mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                Informations d'Entreprise
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Vos informations d'entreprise seront utilisées pour des analyses plus précises et personnalisées.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Entreprise</span>
+                  <p className="text-sm font-semibold">{userProfile.companyName || 'Non renseigné'}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Pays</span>
+                  <p className="text-sm font-semibold">{userProfile.country || 'Non renseigné'}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Taille</span>
+                  <p className="text-sm font-semibold">{userProfile.companySize || 'Non renseignée'}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Devise</span>
+                  <p className="text-sm font-semibold">{userProfile.currency || 'FCFA'}</p>
+                </div>
+              </div>
+              {userProfile.isProfileComplete ? (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">Profil complet</span>
+                  </div>
+                  <p className="text-sm text-green-700 mt-1">
+                    Vos analyses seront adaptées au contexte de {userProfile.country} avec des données sectorielles locales et des recommandations personnalisées.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm font-medium text-yellow-800">Profil incomplet</span>
+                  </div>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Complétez votre profil dans les paramètres pour des analyses plus précises adaptées à votre contexte local.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
