@@ -38,7 +38,13 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="min-h-screen bg-background">
       <header className="flex justify-between items-center p-4 border-b border-border bg-card">
-        <h1 className="text-xl font-bold">Prediktor</h1>
+        <div className="flex items-center">
+          <img 
+            src="/prediktor-logo.png" 
+            alt="Prediktor Logo" 
+            className="h-12 w-auto mr-2"
+          />
+        </div>
         <Button variant="outline" onClick={handleLogout}>
           Déconnexion
         </Button>
