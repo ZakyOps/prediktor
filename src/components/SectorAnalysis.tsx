@@ -43,6 +43,7 @@ import DebugData from "./DebugData";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveAnalysisToFirestore } from "@/services/analysis-storage";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import PDFExportService from "@/services/pdf-export";
 
 interface SectorAnalysisProps {
   companyData: CompanyData;
@@ -61,6 +62,7 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
   const [showActionPlan, setShowActionPlan] = useState(false);
   const [isDemoData, setIsDemoData] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     generateAnalysis();
@@ -123,6 +125,41 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
       case 'weak': return 'bg-orange-100 text-orange-800';
       case 'struggling': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!analysis) return;
+    
+    try {
+      setExporting(true);
+      
+      // S'assurer que l'onglet "Comparaisons" est actif pour que les graphiques soient visibles
+      const comparisonTab = document.querySelector('[value="comparison"]') as HTMLElement;
+      if (comparisonTab) {
+        comparisonTab.click();
+        // Attendre que les graphiques soient rendus
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      const pdfService = new PDFExportService();
+      await pdfService.exportSectorAnalysisToPDF(analysis, companyData);
+      
+      toast({
+        title: "Export réussi",
+        description: "L'analyse sectorielle a été exportée en PDF avec succès.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible d'exporter l'analyse en PDF. Veuillez réessayer.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -252,9 +289,14 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
                 <Target className="h-4 w-4 mr-2" />
                 Plan d'Action
               </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exporter
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exporting || !analysis}
+              >
+                <Download className={`h-4 w-4 mr-2 ${exporting ? 'animate-spin' : ''}`} />
+                {exporting ? 'Export...' : 'Exporter'}
               </Button>
               <Button variant="outline" size="sm">
                 <Share2 className="h-4 w-4 mr-2" />
@@ -457,24 +499,26 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
           </TabsContent>
 
           <TabsContent value="comparison">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="comparison-section">
               {/* Comparaison des métriques */}
               <Card className="border-card-border">
                 <CardHeader>
                   <CardTitle>Comparaison des Métriques</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analysis.charts.marketPosition}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="metric" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="company" fill="#2563eb" name="Votre entreprise" />
-                      <Bar dataKey="sector" fill="#059669" name="Secteur" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div data-testid="metrics-chart">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analysis.charts.marketPosition}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="metric" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="company" fill="#2563eb" name="Votre entreprise" />
+                        <Bar dataKey="sector" fill="#059669" name="Secteur" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -483,17 +527,19 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
                   <CardTitle>Comparaison des Revenus</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analysis.charts.revenueComparison}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="company" fill="#2563eb" name="Votre entreprise" />
-                      <Bar dataKey="sector" fill="#059669" name="Secteur" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div data-testid="revenue-chart">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analysis.charts.revenueComparison}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="company" fill="#2563eb" name="Votre entreprise" />
+                        <Bar dataKey="sector" fill="#059669" name="Secteur" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
             </div>
