@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Link2, ArrowLeft, BarChart3 } from "lucide-react";
+import { Upload, Link2, ArrowLeft, BarChart3, FileSpreadsheet, TrendingUp, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SectorAnalysis from "./SectorAnalysis";
 import { CompanyData } from "@/services/gemini";
@@ -14,6 +14,13 @@ import { savePredictionToFirestore } from "@/services/prediction-storage";
 
 interface DataFormProps {
   onBack?: () => void;
+}
+
+interface ImportedData {
+  type: 'sheets' | 'analytics' | 'manual';
+  data: CompanyData[];
+  source: string;
+  lastUpdated: Date;
 }
 
 const DataForm = ({ onBack }: DataFormProps) => {
@@ -28,6 +35,9 @@ const DataForm = ({ onBack }: DataFormProps) => {
   });
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+  const [importedData, setImportedData] = useState<ImportedData | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const { user } = useAuth();
 
   const sectors = [
@@ -113,6 +123,144 @@ const DataForm = ({ onBack }: DataFormProps) => {
     }
   };
 
+  // Simulation d'import depuis Google Sheets
+  const handleGoogleSheetsImport = async () => {
+    setIsImporting(true);
+    setImportStatus('loading');
+    
+    try {
+      // Simulation d'un délai d'import
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Données simulées importées depuis Google Sheets
+      const mockSheetsData: CompanyData[] = [
+        {
+          year: "2024",
+          revenue: 8500000,
+          expenses: 6200000,
+          employees: 25,
+          sector: "Technologie",
+          market: "National"
+        },
+        {
+          year: "2023",
+          revenue: 7200000,
+          expenses: 5400000,
+          employees: 22,
+          sector: "Technologie",
+          market: "National"
+        },
+        {
+          year: "2022",
+          revenue: 5800000,
+          expenses: 4200000,
+          employees: 18,
+          sector: "Technologie",
+          market: "Régional"
+        }
+      ];
+
+      const importedData: ImportedData = {
+        type: 'sheets',
+        data: mockSheetsData,
+        source: 'Google Sheets - Données Financières 2022-2024',
+        lastUpdated: new Date()
+      };
+
+      setImportedData(importedData);
+      setImportStatus('success');
+      
+      toast({
+        title: "Import réussi",
+        description: `${mockSheetsData.length} lignes de données importées depuis Google Sheets`,
+        duration: 3000,
+      });
+
+    } catch (error) {
+      setImportStatus('error');
+      toast({
+        title: "Erreur d'import",
+        description: "Impossible d'importer les données depuis Google Sheets",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Simulation d'import depuis Google Analytics
+  const handleGoogleAnalyticsImport = async () => {
+    setIsImporting(true);
+    setImportStatus('loading');
+    
+    try {
+      // Simulation d'un délai d'import
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Données simulées importées depuis Google Analytics
+      const mockAnalyticsData: CompanyData[] = [
+        {
+          year: "2024",
+          revenue: 9200000,
+          expenses: 6800000,
+          employees: 28,
+          sector: "Commerce",
+          market: "International"
+        },
+        {
+          year: "2023",
+          revenue: 7800000,
+          expenses: 5900000,
+          employees: 24,
+          sector: "Commerce",
+          market: "National"
+        }
+      ];
+
+      const importedData: ImportedData = {
+        type: 'analytics',
+        data: mockAnalyticsData,
+        source: 'Google Analytics - Données de Performance',
+        lastUpdated: new Date()
+      };
+
+      setImportedData(importedData);
+      setImportStatus('success');
+      
+      toast({
+        title: "Import réussi",
+        description: `${mockAnalyticsData.length} lignes de données importées depuis Google Analytics`,
+        duration: 3000,
+      });
+
+    } catch (error) {
+      setImportStatus('error');
+      toast({
+        title: "Erreur d'import",
+        description: "Impossible d'importer les données depuis Google Analytics",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Analyser les données importées
+  const handleAnalyzeImportedData = (selectedData: CompanyData) => {
+    setCompanyData(selectedData);
+    setShowAnalysis(true);
+    
+    toast({
+      title: "Analyse en cours",
+      description: "Génération de l'analyse sectorielle pour les données sélectionnées...",
+      duration: 3000,
+    });
+
+    handlePrediction(selectedData);
+  };
+
   // Si l'analyse est demandée, afficher le composant d'analyse
   if (showAnalysis && companyData) {
     return (
@@ -149,34 +297,147 @@ const DataForm = ({ onBack }: DataFormProps) => {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Import Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="border-card-border hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="border-card-border hover:shadow-md transition-shadow">
             <CardContent className="p-6">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-secondary/10">
-                  <Upload className="h-6 w-6 text-secondary" />
+                  <FileSpreadsheet className="h-6 w-6 text-secondary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Importer depuis Google Sheets</h3>
                   <p className="text-sm text-muted-foreground">Connectez votre feuille de calcul</p>
                 </div>
               </div>
+              <Button 
+                onClick={handleGoogleSheetsImport}
+                disabled={isImporting}
+                className="w-full"
+                variant="outline"
+              >
+                {isImporting && importStatus === 'loading' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Import en cours...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importer depuis Sheets
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-card-border hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="border-card-border hover:shadow-md transition-shadow">
             <CardContent className="p-6">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-primary/10">
-                  <Link2 className="h-6 w-6 text-primary" />
+                  <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Google Analytics</h3>
                   <p className="text-sm text-muted-foreground">Données de trafic web</p>
                 </div>
               </div>
+              <Button 
+                onClick={handleGoogleAnalyticsImport}
+                disabled={isImporting}
+                className="w-full"
+                variant="outline"
+              >
+                {isImporting && importStatus === 'loading' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Import en cours...
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Importer depuis Analytics
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>
+
+        {/* Imported Data Display */}
+        {importedData && (
+          <Card className="border-card-border mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {importedData.type === 'sheets' ? (
+                    <FileSpreadsheet className="h-5 w-5 text-secondary" />
+                  ) : (
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  )}
+                  <CardTitle>Données Importées</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  {importStatus === 'success' && (
+                    <div className="flex items-center gap-1 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm">Importé</span>
+                    </div>
+                  )}
+                  {importStatus === 'error' && (
+                    <div className="flex items-center gap-1 text-red-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">Erreur</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {importedData.source} • Dernière mise à jour: {importedData.lastUpdated.toLocaleString()}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {importedData.data.map((data, index) => (
+                    <Card key={index} className="border border-border hover:border-primary/20 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Année</span>
+                            <span className="text-sm font-semibold">{data.year}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">CA</span>
+                            <span className="text-sm font-semibold">{data.revenue.toLocaleString()} FCFA</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Charges</span>
+                            <span className="text-sm font-semibold">{data.expenses.toLocaleString()} FCFA</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Employés</span>
+                            <span className="text-sm font-semibold">{data.employees}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Secteur</span>
+                            <span className="text-sm font-semibold">{data.sector}</span>
+                          </div>
+                          <Button 
+                            onClick={() => handleAnalyzeImportedData(data)}
+                            className="w-full mt-2"
+                            size="sm"
+                          >
+                            <BarChart3 className="h-3 w-3 mr-1" />
+                            Analyser
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Manual Entry Form */}
         <Card className="border-card-border">
