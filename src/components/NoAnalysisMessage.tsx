@@ -88,7 +88,7 @@ const NoAnalysisMessage = ({ onStartAnalysis }: NoAnalysisMessageProps) => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Recevez des recommandations personnalisées et des opportunités détectées par l'IA 
+              Recevez des recommandations personnalisées et des opportunités détectées par Prediktor
               pour optimiser votre stratégie.
             </p>
           </CardContent>
@@ -119,9 +119,9 @@ const NoAnalysisMessage = ({ onStartAnalysis }: NoAnalysisMessageProps) => {
                 2
               </div>
               <div>
-                <h4 className="font-medium">Lancez l'analyse IA</h4>
+                <h4 className="font-medium">Lancez l'analyse avec Prediktor</h4>
                 <p className="text-sm text-muted-foreground">
-                  Notre IA analyse vos données et génère des insights personnalisés en quelques secondes.
+                  Notre IA Prediktor analyse vos données et génère des insights personnalisés en quelques secondes.
                 </p>
               </div>
             </div>

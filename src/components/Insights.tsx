@@ -40,7 +40,7 @@ const Insights = ({ onBack }: InsightsProps) => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Insights IA</h1>
               <p className="text-muted-foreground">
-                Analyse avancée et recommandations générées par l'IA
+                Analyse avancée et recommandations générées par Prediktor
                 {insights && (
                   <span className="ml-2">
                     • {insights.metadata.companyName} ({insights.metadata.sector})
@@ -321,7 +321,7 @@ const Insights = ({ onBack }: InsightsProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {/* Score de risque IA */}
               <Card className="flex flex-col items-center justify-center py-6">
-                <CardTitle className="text-center text-foreground mb-2">Score de risque IA</CardTitle>
+                <CardTitle className="text-center text-foreground mb-2">Score de risque Prediktor</CardTitle>
                 <div className="relative flex items-center justify-center h-24 w-24">
                   <svg width="96" height="96">
                     <circle cx="48" cy="48" r="40" stroke="#e2e8f0" strokeWidth="12" fill="none" />

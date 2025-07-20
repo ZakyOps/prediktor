@@ -228,7 +228,7 @@ const Settings = ({ onBack }: SettingsProps) => {
                 className="pl-10"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Email non modifiable (connecté via Firebase)</p>
+            <p className="text-xs text-muted-foreground">Email non modifiable</p>
           </div>
 
           <div className="space-y-2">
