@@ -271,7 +271,7 @@ Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus
 ## 📞 Contact & Support
 
 Pour toute question, suggestion ou support :
-- **Auteur** : Novq-Tech
+- **Auteur** : Nova-Tech
 - **Issues** : [GitHub Issues](https://github.com/ZakyOps/prediktor.git/issues)
 
 ## 🎉 Remerciements
