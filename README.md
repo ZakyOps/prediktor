@@ -2,7 +2,7 @@
 
 ## Présentation
 
-**SME Growth Predictor & Business Plan Generator** est une application web innovante qui démocratise l'accès aux outils d'analyse prédictive et de planification stratégique pour les PME africaines. Grâce à l'intelligence artificielle, elle permet de prédire la croissance des entreprises et de générer automatiquement des business plans professionnels, facilitant ainsi la prise de décision et l'accès au financement.
+**SME Prediktor** est une application web innovante qui démocratise l'accès aux outils d'analyse prédictive et de planification stratégique pour les PME africaines. Grâce à l'intelligence artificielle, elle permet de prédire la croissance des entreprises et de générer automatiquement des business plans professionnels, facilitant ainsi la prise de décision et l'accès au financement.
 
 ## Objectifs
 - Prédire la croissance potentielle des PME à partir de leurs données historiques
@@ -75,7 +75,7 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus d'i
 
 ## Contact
 Pour toute question ou suggestion :
-- **Auteur** : Team Predictor
+- **Auteur** : Nova-Tech
 
 ---
 
