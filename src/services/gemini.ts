@@ -343,7 +343,7 @@ class GeminiService {
           companyData,
           sectorData,
           healthScore,
-          ...this.validateAndTransformAnalysis(analysis)
+          ...this.validateAndTransformAnalysis(analysis, companyData, sectorData, healthScore)
         },
         isDemoData: false
       };
@@ -607,7 +607,7 @@ class GeminiService {
     return { objectives, actions, timeline };
   }
 
-  private validateAndTransformAnalysis(data: any): any {
+  private validateAndTransformAnalysis(data: any, companyData: CompanyData, sectorData: SectorData, healthScore: HealthScore): any {
     // Validation et transformation des recommandations
     const recommendations = {
       immediate: Array.isArray(data.recommendations?.immediate) 
@@ -621,12 +621,60 @@ class GeminiService {
         : ['Expansion géographique', 'Innovation produit']
     };
 
-    // Validation et transformation de la position concurrentielle
-    const competitivePosition = {
-      score: typeof data.competitivePosition?.score === 'number' ? data.competitivePosition.score : 75,
-      position: typeof data.competitivePosition?.position === 'string' ? data.competitivePosition.position : 'strong',
-      description: typeof data.competitivePosition?.description === 'string' ? data.competitivePosition.description : 'Position concurrentielle solide'
+    // Validation et transformation de la position concurrentielle avec calcul dynamique
+    const calculateCompetitivePosition = (data: any, companyData: CompanyData, sectorData: SectorData, healthScore: HealthScore) => {
+      // Si l'API a retourné une position valide, l'utiliser
+      if (typeof data.competitivePosition?.score === 'number' && 
+          typeof data.competitivePosition?.position === 'string' &&
+          typeof data.competitivePosition?.description === 'string') {
+        return {
+          score: data.competitivePosition.score,
+          position: data.competitivePosition.position,
+          description: data.competitivePosition.description
+        };
+      }
+
+      // Sinon, calculer dynamiquement basé sur les données réelles
+      const companyProfitability = ((companyData.revenue - companyData.expenses) / companyData.revenue) * 100;
+      const companyEfficiency = companyData.revenue / companyData.employees;
+      const sectorEfficiency = sectorData.averageRevenue / sectorData.averageEmployees;
+      
+      // Calculer le score basé sur plusieurs facteurs
+      const profitabilityScore = Math.min(100, Math.max(0, (companyProfitability / sectorData.keyMetrics.profitability) * 50));
+      const efficiencyScore = Math.min(100, Math.max(0, (companyEfficiency / sectorEfficiency) * 30));
+      const growthScore = Math.min(100, Math.max(0, (healthScore.growth / sectorData.growthRate) * 20));
+      
+      const calculatedScore = Math.round(profitabilityScore + efficiencyScore + growthScore);
+      
+      // Déterminer la position basée sur le score
+      let position: 'leader' | 'strong' | 'average' | 'weak' | 'struggling';
+      let description: string;
+      
+      if (calculatedScore >= 85) {
+        position = 'leader';
+        description = 'Position de leader dans le secteur avec des performances exceptionnelles';
+      } else if (calculatedScore >= 70) {
+        position = 'strong';
+        description = 'Position concurrentielle solide avec des opportunités d\'amélioration';
+      } else if (calculatedScore >= 55) {
+        position = 'average';
+        description = 'Position moyenne dans le secteur, nécessite des améliorations';
+      } else if (calculatedScore >= 40) {
+        position = 'weak';
+        description = 'Position faible dans le secteur, actions correctives requises';
+      } else {
+        position = 'struggling';
+        description = 'Position difficile dans le secteur, restructuration nécessaire';
+      }
+      
+      return {
+        score: calculatedScore,
+        position,
+        description
+      };
     };
+
+    const competitivePosition = calculateCompetitivePosition(data, companyData, sectorData, healthScore);
 
     // Validation et transformation des graphiques avec données de fallback complètes
     const charts = {
@@ -637,10 +685,10 @@ class GeminiService {
             label: typeof item.label === 'string' ? item.label : 'Revenus'
           }))
         : [
-            {"company": 5000000, "sector": 8000000, "label": "Revenus"},
-            {"company": 3500000, "sector": 6000000, "label": "Charges"},
-            {"company": 1500000, "sector": 2000000, "label": "Bénéfice"},
-            {"company": 250000, "sector": 320000, "label": "CA/Employé"}
+            {"company": companyData.revenue, "sector": sectorData.averageRevenue, "label": "Revenus"},
+            {"company": companyData.expenses, "sector": sectorData.averageExpenses, "label": "Charges"},
+            {"company": companyData.revenue - companyData.expenses, "sector": sectorData.averageRevenue - sectorData.averageExpenses, "label": "Bénéfice"},
+            {"company": Math.round(companyData.revenue / companyData.employees), "sector": Math.round(sectorData.averageRevenue / sectorData.averageEmployees), "label": "CA/Employé"}
           ],
       profitabilityTrend: Array.isArray(data.charts?.profitabilityTrend) && data.charts.profitabilityTrend.length > 0
         ? data.charts.profitabilityTrend.map((item: any) => ({
@@ -648,24 +696,37 @@ class GeminiService {
             sector: typeof item.sector === 'number' ? item.sector : 0,
             period: typeof item.period === 'string' ? item.period : 'Actuel'
           }))
-        : [
-            {"company": 18, "sector": 15, "period": "2022"},
-            {"company": 20, "sector": 16, "period": "2023"},
-            {"company": 22, "sector": 17, "period": "2024"},
-            {"company": 25, "sector": 18, "period": "2025"}
-          ],
+        : (() => {
+            // Calculer les données de fallback basées sur les vraies données de l'entreprise
+            const companyProfitability = ((companyData.revenue - companyData.expenses) / companyData.revenue) * 100;
+            const sectorProfitability = sectorData.keyMetrics.profitability;
+            
+            return [
+              {"company": Math.round(companyProfitability * 0.8), "sector": Math.round(sectorProfitability * 0.9), "period": "2022"},
+              {"company": Math.round(companyProfitability * 0.9), "sector": Math.round(sectorProfitability * 0.95), "period": "2023"},
+              {"company": Math.round(companyProfitability), "sector": Math.round(sectorProfitability), "period": "2024"},
+              {"company": Math.round(companyProfitability * 1.1), "sector": Math.round(sectorProfitability * 1.05), "period": "2025"}
+            ];
+          })(),
       marketPosition: Array.isArray(data.charts?.marketPosition) && data.charts.marketPosition.length > 0
         ? data.charts.marketPosition.map((item: any) => ({
             metric: typeof item.metric === 'string' ? item.metric : 'Métrique',
             company: typeof item.company === 'number' ? item.company : 0,
             sector: typeof item.sector === 'number' ? item.sector : 0
           }))
-        : [
-            {"metric": "Rentabilité", "company": 22, "sector": 17},
-            {"metric": "Efficacité", "company": 250000, "sector": 320000},
-            {"metric": "Croissance", "company": 15, "sector": 12},
-            {"metric": "Taille", "company": 20, "sector": 25}
-          ]
+        : (() => {
+            // Calculer les données de fallback basées sur les vraies données de l'entreprise
+            const companyProfitability = ((companyData.revenue - companyData.expenses) / companyData.revenue) * 100;
+            const companyEfficiency = companyData.revenue / companyData.employees;
+            const sectorEfficiency = sectorData.averageRevenue / sectorData.averageEmployees;
+            
+            return [
+              {"metric": "Rentabilité", "company": Math.round(companyProfitability), "sector": Math.round(sectorData.keyMetrics.profitability)},
+              {"metric": "Efficacité", "company": Math.round(companyEfficiency), "sector": Math.round(sectorEfficiency)},
+              {"metric": "Croissance", "company": healthScore.growth, "sector": sectorData.growthRate},
+              {"metric": "Taille", "company": companyData.employees, "sector": sectorData.averageEmployees}
+            ];
+          })()
     };
 
     return {

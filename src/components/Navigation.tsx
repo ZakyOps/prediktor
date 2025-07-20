@@ -48,7 +48,7 @@ const Navigation = ({ currentModule, onModuleChange }: NavigationProps) => {
       `}>
         <div className="p-6">
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-foreground">SME Predictor</h2>
+            <h2 className="text-lg font-bold text-foreground">SME Prediktor</h2>
             <p className="text-sm text-muted-foreground">Prédicteur de croissance</p>
           </div>
 

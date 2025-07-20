@@ -18,7 +18,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
         {
           title: "Chiffre d'Affaires",
           value: "0",
-          unit: "€",
+          unit: "XOF",
           change: "Aucune donnée",
           trend: "neutral",
           icon: DollarSign,
@@ -65,14 +65,36 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
     
     // Utiliser les données d'analyse pour le score de risque et la croissance
     const riskScore = lastAnalysis?.healthScore?.overall || 50;
-    const growthPrediction = lastAnalysis?.sectorData?.growthRate || 0;
     
-    // Déterminer le niveau de risque
+    // Calculer la croissance prédite basée sur les performances de l'entreprise
+    let growthPrediction = 0;
+    if (lastAnalysis) {
+      const companyProfitability = lastAnalysis.healthScore?.profitability || 0;
+      const sectorProfitability = lastAnalysis.sectorData?.keyMetrics?.profitability || 0;
+      const companyEfficiency = lastAnalysis.healthScore?.efficiency || 0;
+      const sectorEfficiency = lastAnalysis.sectorData?.keyMetrics?.efficiency || 0;
+      const healthScore = lastAnalysis.healthScore?.overall || 50;
+      const sectorGrowth = lastAnalysis.sectorData?.growthRate || 0;
+      
+      // Facteur de performance basé sur les avantages concurrentiels
+      const profitabilityAdvantage = companyProfitability - sectorProfitability;
+      const efficiencyAdvantage = companyEfficiency - sectorEfficiency;
+      const performanceFactor = Math.max(0.8, Math.min(2.0, 
+        1 + (profitabilityAdvantage / 100) + (efficiencyAdvantage / 100) + (healthScore - 50) / 100
+      ));
+      
+      // Croissance prédite basée sur les performances réelles de l'entreprise
+      growthPrediction = Math.max(0, Math.min(35, sectorGrowth * performanceFactor));
+    }
+    
+    // Déterminer le niveau de risque avec des intervalles clairs
     const getRiskLevel = (score: number) => {
       if (score >= 80) return { value: "Faible", color: "success", trend: "neutral" };
-      if (score >= 60) return { value: "Modéré", color: "warning", trend: "neutral" };
-      if (score >= 40) return { value: "Élevé", color: "warning", trend: "down" };
-      return { value: "Critique", color: "destructive", trend: "down" };
+      if (score >= 65 && score < 80) return { value: "Modéré", color: "warning", trend: "neutral" };
+      if (score >= 51 && score < 65) return { value: "Élevé", color: "warning", trend: "down" };
+      if (score >= 31 && score <= 50) return { value: "Très Élevé", color: "destructive", trend: "down" };
+      if (score >= 0 && score <= 30) return { value: "Critique", color: "destructive", trend: "down" };
+      return { value: "Inconnu", color: "muted", trend: "neutral" };
     };
 
     const risk = getRiskLevel(riskScore);
@@ -81,7 +103,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
       {
         title: "Chiffre d'Affaires",
         value: revenue.toLocaleString('fr-FR'),
-        unit: "€",
+        unit: "XOF",
         change: margin > 0 ? `+${margin.toFixed(1)}% marge` : `${margin.toFixed(1)}% marge`,
         trend: margin > 0 ? "up" : margin < 0 ? "down" : "neutral",
         icon: DollarSign,
@@ -100,7 +122,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
         title: "Employés",
         value: employees.toString(),
         unit: "personnes",
-        change: employees > 0 ? `${(revenue / employees).toLocaleString('fr-FR')} €/pers` : "Aucun employé",
+        change: employees > 0 ? `${(revenue / employees).toLocaleString('fr-FR')} XOF/pers` : "Aucun employé",
         trend: "neutral",
         icon: Users,
         color: "primary"
@@ -141,7 +163,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">SME Growth Predictor</h1>
+              <h1 className="text-2xl font-bold text-foreground">SME Prediktor</h1>
               <p className="text-muted-foreground">
                 Tableau de bord - {lastPrediction?.sector || "Mon Entreprise"}
                 {lastPrediction?.createdAt && (
