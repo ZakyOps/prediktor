@@ -65,7 +65,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
     
     // Utiliser les données d'analyse pour le score de risque et la croissance
     const riskScore = lastAnalysis?.healthScore?.overall || 50;
-    const growthPrediction = lastAnalysis?.growthProjections?.next12Months || 0;
+    const growthPrediction = lastAnalysis?.sectorData?.growthRate || 0;
     
     // Déterminer le niveau de risque
     const getRiskLevel = (score: number) => {
