@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useInsights } from "@/hooks/use-insights";
 import { Skeleton } from "@/components/ui/skeleton";
 import NoAnalysisMessage from "./NoAnalysisMessage";
+import { useUserHistory } from "@/hooks/use-user-history";
 
 interface InsightsProps {
   onBack?: () => void;
@@ -24,6 +25,7 @@ interface InsightsProps {
 
 const Insights = ({ onBack }: InsightsProps) => {
   const { insights, loading, error, refreshInsights } = useInsights();
+  const { lastAnalysis, lastPrediction, loading: loadingHistory } = useUserHistory();
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -62,6 +64,117 @@ const Insights = ({ onBack }: InsightsProps) => {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
+        {/* Affichage de la dernière analyse */}
+        {!loadingHistory && lastAnalysis && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Dernière Analyse Sectorielle</CardTitle>
+              <div className="text-sm text-muted-foreground">
+                {lastAnalysis.companyData?.sector || "Secteur inconnu"} —{" "}
+                {lastAnalysis.createdAt ? new Date(lastAnalysis.createdAt).toLocaleString() : ""}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Exemple de graphique */}
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={lastAnalysis.charts?.profitabilityTrend || []}>
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <RechartsTooltip />
+                  <RechartsLegend />
+                  <Line type="monotone" dataKey="company" stroke="#2563eb" name="Votre PME" />
+                  <Line type="monotone" dataKey="sector" stroke="#059669" name="Secteur" />
+                </LineChart>
+              </ResponsiveContainer>
+              {/* Recommandations */}
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Recommandations</h4>
+                <ul className="list-disc ml-6 text-sm">
+                  {(lastAnalysis.recommendations?.immediate || []).map((rec: string, i: number) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Affichage de la dernière prédiction */}
+        {!loadingHistory && lastPrediction && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Dernière Prédiction</CardTitle>
+              <div className="text-sm text-muted-foreground">
+                {lastPrediction.sector || "Secteur inconnu"} —{" "}
+                {lastPrediction.createdAt ? new Date(lastPrediction.createdAt).toLocaleString() : ""}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Graphique des données financières */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-primary/10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {lastPrediction.revenue?.toLocaleString('fr-FR')} €
+                  </div>
+                  <div className="text-sm text-muted-foreground">Chiffre d'affaires</div>
+                </div>
+                <div className="bg-success/10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-success">
+                    {lastPrediction.expenses?.toLocaleString('fr-FR')} €
+                  </div>
+                  <div className="text-sm text-muted-foreground">Dépenses</div>
+                </div>
+                <div className="bg-accent/10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-accent">
+                    {lastPrediction.employees || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Employés</div>
+                </div>
+              </div>
+              
+              {/* Graphique en barres des données */}
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={[
+                  {
+                    name: 'Chiffre d\'affaires',
+                    value: lastPrediction.revenue || 0,
+                    color: '#2563eb'
+                  },
+                  {
+                    name: 'Dépenses',
+                    value: lastPrediction.expenses || 0,
+                    color: '#dc2626'
+                  }
+                ]}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <RechartsTooltip formatter={(value) => `${value?.toLocaleString('fr-FR')} €`} />
+                  <Bar dataKey="value" fill="#2563eb" />
+                </BarChart>
+              </ResponsiveContainer>
+              
+              {/* Informations supplémentaires */}
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Détails</h4>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Secteur:</span> {lastPrediction.sector}</div>
+                    <div><span className="font-medium">Marché:</span> {lastPrediction.market}</div>
+                    <div><span className="font-medium">Année:</span> {lastPrediction.year}</div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Calculs</h4>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Marge brute:</span> {((lastPrediction.revenue - lastPrediction.expenses) / lastPrediction.revenue * 100).toFixed(1)}%</div>
+                    <div><span className="font-medium">CA/employé:</span> {((lastPrediction.revenue || 0) / (lastPrediction.employees || 1)).toLocaleString('fr-FR')} €</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Gestion des états de chargement et d'erreur */}
         {loading && (
           <div className="space-y-8">

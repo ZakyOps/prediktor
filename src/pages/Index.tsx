@@ -1,7 +1,12 @@
 import AppLayout from "@/components/AppLayout";
+import ProtectedRoute from "@/components/ui/ProtectedRoute";
 
 const Index = () => {
-  return <AppLayout />;
+  return (
+    <ProtectedRoute>
+      <AppLayout />
+    </ProtectedRoute>
+  );
 };
 
 export default Index;

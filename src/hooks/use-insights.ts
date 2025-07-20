@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useUserHistory } from "@/hooks/use-user-history";
 import { useToast } from '@/hooks/use-toast';
 import { ComparativeAnalysis } from '@/services/gemini';
+import { useMemo } from 'react';
 
 export interface InsightData {
   // Données de croissance prévisionnelle
@@ -63,50 +64,24 @@ export interface InsightData {
 
 export const useInsights = () => {
   const { toast } = useToast();
-  const [insights, setInsights] = useState<InsightData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Récupérer les données de la dernière analyse depuis le localStorage
-  const getLastAnalysis = (): ComparativeAnalysis | null => {
-    try {
-      const stored = localStorage.getItem('lastAnalysis');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return null;
-    } catch (error) {
-      console.error('Error parsing last analysis:', error);
-      return null;
-    }
-  };
+  const { lastAnalysis, loading } = useUserHistory();
 
   // Transformer les données d'analyse en insights
-  const transformAnalysisToInsights = (analysis: ComparativeAnalysis): InsightData => {
-    // Extraire les données de croissance depuis l'analyse
+  const transformAnalysisToInsights = (analysis: ComparativeAnalysis) => {
     const companyGrowth = analysis.sectorData.growthRate;
     const projectedGrowth = Math.min(companyGrowth * 1.5, 30); // Projection optimiste
-    
-    // Générer les projections mensuelles
     const monthlyProjections = [];
     const baseGrowth = companyGrowth;
     const targetGrowth = projectedGrowth;
-    
     for (let i = -12; i <= 12; i++) {
       const month = i < 0 ? `M${i}` : i === 0 ? 'M' : `M+${i}`;
       const growth = Math.max(0, baseGrowth + (targetGrowth - baseGrowth) * (i + 12) / 24);
       monthlyProjections.push({ month, growth: Math.round(growth * 10) / 10 });
     }
-
-    // Extraire les données de benchmark
     const sectorGrowth = analysis.sectorData.growthRate;
     const gap = companyGrowth - sectorGrowth;
-
-    // Calculer le niveau de risque
     const riskLevel = gap > 5 ? 'Bas' : gap > 0 ? 'Modéré' : 'Élevé';
     const riskPercentage = Math.max(0, Math.min(100, 100 - (gap * 10)));
-
-    // Générer les indicateurs de benchmark
     const indicators = [
       {
         indicator: 'Croissance',
@@ -124,15 +99,10 @@ export const useInsights = () => {
         sector: 5
       }
     ];
-
-    // Extraire les recommandations
     const recommendations = analysis.recommendations.immediate;
     const mainRecommendation = recommendations[0] || 'Optimiser la stratégie';
-
-    // Extraire les opportunités
     const opportunities = analysis.sectorData.opportunities;
     const mainOpportunity = opportunities[0] || 'Nouveau marché';
-
     return {
       growthData: {
         current: companyGrowth,
@@ -171,7 +141,7 @@ export const useInsights = () => {
         }
       },
       metadata: {
-        lastAnalysisDate: new Date().toISOString(),
+        lastAnalysisDate: (analysis as any).createdAt || new Date().toISOString(),
         companyName: analysis.companyData.sector,
         sector: analysis.companyData.sector,
         isDemoData: false
@@ -179,59 +149,25 @@ export const useInsights = () => {
     };
   };
 
-  // Charger les insights
-  const loadInsights = () => {
+  const insights = useMemo(() => {
+    if (!lastAnalysis) return null;
     try {
-      setLoading(true);
-      setError(null);
-
-      const lastAnalysis = getLastAnalysis();
-      
-      if (!lastAnalysis) {
-        setError('Aucune analyse récente trouvée. Veuillez effectuer une analyse sectorielle.');
-        setInsights(null);
-        return;
-      }
-
-      const insightsData = transformAnalysisToInsights(lastAnalysis);
-      setInsights(insightsData);
-
-      if (insightsData.metadata.isDemoData) {
-        toast({
-          title: "Données de démonstration",
-          description: "Les insights affichés sont basés sur des données de démonstration.",
-          duration: 5000,
-        });
-      }
-
+      return transformAnalysisToInsights(lastAnalysis);
     } catch (error) {
-      console.error('Error loading insights:', error);
-      setError('Erreur lors du chargement des insights');
       toast({
         title: "Erreur",
-        description: "Impossible de charger les insights. Veuillez réessayer.",
+        description: "Impossible de transformer l'analyse en insights.",
         variant: "destructive",
         duration: 5000,
       });
-    } finally {
-      setLoading(false);
+      return null;
     }
-  };
-
-  // Recharger les insights
-  const refreshInsights = () => {
-    loadInsights();
-  };
-
-  // Charger les insights au montage du composant
-  useEffect(() => {
-    loadInsights();
-  }, []);
+  }, [lastAnalysis, toast]);
 
   return {
     insights,
     loading,
-    error,
-    refreshInsights
+    error: null,
+    refreshInsights: () => {} // Optionnel
   };
 }; 

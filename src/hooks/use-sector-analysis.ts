@@ -1,9 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import GeminiService, { CompanyData, ComparativeAnalysis } from '@/services/gemini';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveAnalysisToFirestore } from '@/services/analysis-storage';
 
 export const useSectorAnalysis = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ComparativeAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +23,14 @@ export const useSectorAnalysis = () => {
       setAnalysis(result.analysis);
       setIsDemoData(result.isDemoData);
       
-      // Sauvegarder la dernière analyse dans le localStorage
-      try {
-        localStorage.setItem('lastAnalysis', JSON.stringify(result.analysis));
-      } catch (error) {
-        console.error('Error saving analysis to localStorage:', error);
+      // Sauvegarder l'analyse dans Firestore liée à l'utilisateur
+      if (user && !result.isDemoData) {
+        try {
+          await saveAnalysisToFirestore(user.uid, result.analysis);
+          console.log('Analyse sauvegardée dans Firestore');
+        } catch (err) {
+          console.error('Erreur lors de la sauvegarde Firestore:', err);
+        }
       }
       
       toast({
@@ -50,7 +56,7 @@ export const useSectorAnalysis = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, user]);
 
   const generateActionPlan = useCallback(async (analysis: ComparativeAnalysis) => {
     try {
@@ -64,6 +70,8 @@ export const useSectorAnalysis = () => {
         description: "Le plan d'action a été créé avec succès.",
         duration: 3000,
       });
+      
+      // TODO: Sauvegarder le plan d'action dans Firestore si besoin
       
       return actionPlan;
     } catch (err) {

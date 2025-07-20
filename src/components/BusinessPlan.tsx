@@ -26,9 +26,10 @@ import {
   BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import BusinessPlanService, { BusinessPlanData as ServiceBusinessPlanData, GeneratedBusinessPlan } from "@/services/business-plan";
+import BusinessPlanService, { BusinessPlanData as ServiceBusinessPlanData, GeneratedBusinessPlan, saveBusinessPlanToFirestore } from "@/services/business-plan";
 import BusinessPlanPreview from "./BusinessPlanPreview";
 import PDFPreview from "./PDFPreview";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BusinessPlanProps {
   onBack?: () => void;
@@ -60,6 +61,7 @@ interface BusinessPlanData {
 
 const BusinessPlan = ({ onBack }: BusinessPlanProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<GeneratedBusinessPlan | null>(null);
@@ -135,6 +137,15 @@ const BusinessPlan = ({ onBack }: BusinessPlanProps) => {
       const generated = await businessPlanService.generateBusinessPlan(planData as ServiceBusinessPlanData);
       
       setGeneratedPlan(generated);
+      
+      // Sauvegarder le business plan dans Firestore lié à l'utilisateur
+      if (user) {
+        try {
+          await saveBusinessPlanToFirestore(user.uid, generated);
+        } catch (err) {
+          console.error('Erreur lors de la sauvegarde du business plan Firestore:', err);
+        }
+      }
       
       toast({
         title: "Business Plan généré",

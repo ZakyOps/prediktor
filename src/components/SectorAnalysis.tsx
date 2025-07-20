@@ -40,6 +40,8 @@ import ActionPlan from "./ActionPlan";
 import ApiErrorHandler from "./ApiErrorHandler";
 import DemoDataIndicator from "./DemoDataIndicator";
 import DebugData from "./DebugData";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveAnalysisToFirestore } from "@/services/analysis-storage";
 
 interface SectorAnalysisProps {
   companyData: CompanyData;
@@ -50,6 +52,7 @@ const COLORS = ['#2563eb', '#059669', '#dc2626', '#ea580c', '#7c3aed'];
 
 const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState<ComparativeAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -70,6 +73,16 @@ const SectorAnalysis = ({ companyData, onBack }: SectorAnalysisProps) => {
       const result = await geminiService.generateComparativeAnalysis(companyData);
       setAnalysis(result.analysis);
       setIsDemoData(result.isDemoData);
+      
+      // Sauvegarder l'analyse dans Firestore liée à l'utilisateur
+      if (user && !result.isDemoData) {
+        try {
+          await saveAnalysisToFirestore(user.uid, result.analysis);
+          console.log('Analyse sauvegardée dans Firestore');
+        } catch (err) {
+          console.error('Erreur lors de la sauvegarde Firestore:', err);
+        }
+      }
       
       toast({
         title: "Analyse générée",

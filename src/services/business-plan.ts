@@ -1,4 +1,6 @@
 import GeminiService from './gemini';
+import { db } from "@/lib/firebase";
+import { collection, addDoc, getDocs, query, where, orderBy } from "firebase/firestore";
 
 export interface BusinessPlanData {
   companyName: string;
@@ -278,4 +280,22 @@ class BusinessPlanService extends GeminiService {
   }
 }
 
-export default BusinessPlanService; 
+export default BusinessPlanService;
+
+export async function saveBusinessPlanToFirestore(userId: string, plan: any) {
+  await addDoc(collection(db, "businessPlans"), {
+    userId,
+    createdAt: new Date().toISOString(),
+    ...plan
+  });
+}
+
+export async function getUserBusinessPlans(userId: string) {
+  const q = query(
+    collection(db, "businessPlans"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+} 

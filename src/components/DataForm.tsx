@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import SectorAnalysis from "./SectorAnalysis";
 import { CompanyData } from "@/services/gemini";
 import { getRandomTestData } from "@/utils/test-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { savePredictionToFirestore } from "@/services/prediction-storage";
 
 interface DataFormProps {
   onBack?: () => void;
@@ -26,6 +28,7 @@ const DataForm = ({ onBack }: DataFormProps) => {
   });
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+  const { user } = useAuth();
 
   const sectors = [
     "Agriculture", "Commerce", "Services", "Technologie", 
@@ -71,6 +74,8 @@ const DataForm = ({ onBack }: DataFormProps) => {
       description: "Génération de l'analyse sectorielle en cours...",
       duration: 3000,
     });
+
+    handlePrediction(data);
   };
 
   const handleTestData = () => {
@@ -89,11 +94,23 @@ const DataForm = ({ onBack }: DataFormProps) => {
       description: "Vous pouvez maintenant générer l'analyse ou modifier les données.",
       duration: 3000,
     });
+
+    handlePrediction(testData);
   };
 
   const formatCurrency = (value: string) => {
     // Format number with thousands separator
     return value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  };
+
+  const handlePrediction = async (prediction: any) => {
+    if (user) {
+      try {
+        await savePredictionToFirestore(user.uid, prediction);
+      } catch (err) {
+        console.error('Erreur lors de la sauvegarde de la prédiction Firestore:', err);
+      }
+    }
   };
 
   // Si l'analyse est demandée, afficher le composant d'analyse
