@@ -702,7 +702,7 @@ const Settings = ({ onBack }: SettingsProps) => {
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profil
@@ -714,14 +714,6 @@ const Settings = ({ onBack }: SettingsProps) => {
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notifications
-            </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
-              <Link2 className="h-4 w-4" />
-              Intégrations
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Sécurité
             </TabsTrigger>
           </TabsList>
 
@@ -754,28 +746,6 @@ const Settings = ({ onBack }: SettingsProps) => {
               </CardHeader>
               <CardContent>
                 {renderNotificationsTab()}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="integrations">
-            <Card className="border-card-border">
-              <CardHeader>
-                <CardTitle>Intégrations externes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {renderIntegrationsTab()}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="security">
-            <Card className="border-card-border">
-              <CardHeader>
-                <CardTitle>Sécurité et confidentialité</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {renderSecurityTab()}
               </CardContent>
             </Card>
           </TabsContent>

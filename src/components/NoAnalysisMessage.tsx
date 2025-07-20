@@ -20,7 +20,7 @@ const NoAnalysisMessage = ({ onStartAnalysis }: NoAnalysisMessageProps) => {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Aucune analyse sectorielle récente trouvée. Effectuez une analyse pour voir vos insights IA.
+          Aucune analyse sectorielle récente trouvée. Effectuez une analyse pour voir vos insights Prediktor.
         </AlertDescription>
       </Alert>
 

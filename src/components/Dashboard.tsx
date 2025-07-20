@@ -153,7 +153,7 @@ const Dashboard = ({ onModuleChange }: DashboardProps) => {
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" onClick={() => onModuleChange?.("insights")}>
-                Insights IA
+                Insights Prediktor
               </Button>
               <Button size="sm" onClick={() => onModuleChange?.("business-plan")}>
                 Générer business plan

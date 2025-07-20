@@ -14,7 +14,7 @@ const Navigation = ({ currentModule, onModuleChange }: NavigationProps) => {
     { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
     { id: "data-entry", label: "Saisir Données", icon: BarChart3 },
     { id: "business-plan", label: "Business Plan", icon: FileText },
-    { id: "insights", label: "Insights IA", icon: BarChart3 },
+    { id: "insights", label: "Insights Prediktor", icon: BarChart3 },
     { id: "settings", label: "Paramètres", icon: Settings },
   ];
 

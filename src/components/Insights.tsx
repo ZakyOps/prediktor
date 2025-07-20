@@ -38,7 +38,7 @@ const Insights = ({ onBack }: InsightsProps) => {
               </Button>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Insights IA</h1>
+              <h1 className="text-2xl font-bold text-foreground">Insights Prediktor</h1>
               <p className="text-muted-foreground">
                 Analyse avancée et recommandations générées par Prediktor
                 {insights && (
