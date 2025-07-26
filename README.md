@@ -297,6 +297,7 @@ Pour toute question, suggestion ou support :
 - [ ] **Export PDF** des business plans
 - [ ] **Notifications push** en temps réel
 - [ ] **Dashboard analytics** avancé
+- [ ] **Intégrations ERP moderne** (Odoo)
 - [ ] **Intégrations CRM** (HubSpot, Salesforce)
 
 ---
